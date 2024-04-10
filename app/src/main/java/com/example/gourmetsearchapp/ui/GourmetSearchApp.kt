@@ -45,6 +45,8 @@ fun GourmetSearchAppBar(
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    //変更点
     TopAppBar(
         title = { "TOP APP BAR" },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
