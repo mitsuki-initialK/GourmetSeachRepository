@@ -27,7 +27,8 @@ interface GourmetSearchApiService {
         @Query("format") format: String = "json",
         @Query("lat") lat: Double,
         @Query("lng") lng: Double,
-        @Query("range") range: Int  //１～５で指定
+        @Query("range") range: Int,  //１～５で指定
+        @Query("count") count : Int = 100, //最大100件まで表示
     ) : Results
 }
 
