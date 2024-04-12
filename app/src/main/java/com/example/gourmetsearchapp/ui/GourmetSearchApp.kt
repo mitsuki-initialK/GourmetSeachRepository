@@ -115,6 +115,7 @@ fun GourmetSearchApp(
                         selectedRestaurant = it
                         navController.navigate(GourmetSearchScreen.Detail.name)
                     } ,
+                    retryAction = gourmetSearchViewModel::getGourmetInfo,
                     modifier = Modifier.fillMaxSize()
                 )
             }
