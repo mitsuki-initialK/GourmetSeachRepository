@@ -1,6 +1,7 @@
 package com.example.gourmetsearchapp.ui.screen
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,17 +39,20 @@ fun DetailScreen(
             thickness = 1.dp
         )
         Spacer(Modifier.height(16.dp))
-        Text(
-            text = "住所：${restaurant.address} "
-        )
+        Row{
+            Text(text = "住　　所：")
+            Text(text = "${restaurant.address} ")
+        }
         Spacer(Modifier.height(8.dp))
-        Text(
-            text = "アクセス：" + restaurant.access
-        )
+        Row{
+            Text(text = "アクセス：")
+            Text(text = "${restaurant.access} ")
+        }
         Spacer(Modifier.height(8.dp))
-        Text(
-            text = "営業時間：${restaurant.open} "
-        )
+        Row{
+            Text(text = "営業時間：")
+            Text(text = "${restaurant.open} ")
+        }
         Spacer(Modifier.height(16.dp))
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)

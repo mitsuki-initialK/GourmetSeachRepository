@@ -24,8 +24,8 @@ class GourmetSearchViewModel : ViewModel() {
     var gourmetSearchUiState: GourmetSearchUiState by mutableStateOf(GourmetSearchUiState.Loading)
         private set
 
-    private var latitude = 35.00
-    private var longitude = 135.92
+    private var lat = 0.00
+    private var lng = 0.00
     var rangeNum = 1
 
     fun getLocation(activity : MainActivity){
@@ -33,8 +33,8 @@ class GourmetSearchViewModel : ViewModel() {
         locationGetter.requestLocationPermission(activity)
         locationGetter.fusedLocation()
         locationGetter.location.observe(activity, Observer {
-            //latitude = it.latitude
-            //longitude = it.longitude
+            lat = it.latitude
+            lng = it.longitude
         })
     }
 
@@ -42,8 +42,8 @@ class GourmetSearchViewModel : ViewModel() {
         viewModelScope.launch {
             gourmetSearchUiState = try{
                 val listResult = GourmetSearchApi.retrofitService.searchGourmet(
-                    lat = latitude,
-                    lng = longitude,
+                    lat = lat,
+                    lng = lng,
                     range = rangeNum
                 ).results.shop
                 GourmetSearchUiState.Success(listResult)

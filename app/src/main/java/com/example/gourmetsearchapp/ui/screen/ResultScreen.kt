@@ -18,14 +18,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,7 +65,7 @@ fun SuccessScreen(
     onShowDetailButtonClick : (Restaurant) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Text("${restaurantList.size}件見つかりました（最大100件まで）")
+    Text("${restaurantList.size}件見つかりました（最大100件まで表示）")
     LazyColumn(modifier = modifier) {
         items(restaurantList) { restaurant ->
             RestaurantCard(
@@ -83,7 +86,7 @@ fun RestaurantCard(
 ) {
     Card(modifier = modifier){
         Row(modifier = Modifier.padding(8.dp)){
-            Box(modifier = Modifier.size(48.dp)
+            Box(modifier = Modifier.size(72.dp)
                 .clip(RoundedCornerShape(8.dp))
             ){
                 AsyncImage(
@@ -99,22 +102,31 @@ fun RestaurantCard(
                 )
             }
 
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(16.dp))
 
             Column {
                 Text(
                     text = restaurant.name,
-                    fontSize = 16.sp,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = restaurant.access,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Spacer(Modifier.height(8.dp))
+                Row{
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_where_to_vote),
+                        modifier = Modifier.size(20.dp),
+                        tint = Color(255, 0, 0, 128),
+                        contentDescription = ""
+                    )
+                    Text(
+                        text = restaurant.access,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
