@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,8 +26,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.gourmetsearchapp.model.GourmetSearchViewModel
-import com.example.gourmetsearchapp.model.Restaurant
+import com.example.gourmetsearchapp.ui.screen.GourmetSearchViewModel
+import com.example.gourmetsearchapp.gourmetSearchAPI.Restaurant
 import com.example.gourmetsearchapp.ui.screen.DetailScreen
 import com.example.gourmetsearchapp.ui.screen.ResultScreen
 import com.example.gourmetsearchapp.ui.screen.SearchScreen
@@ -40,10 +41,9 @@ enum class GourmetSearchScreen(@StringRes val title : Int) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GourmetSearchAppBar(
-    currentScreen: GourmetSearchScreen,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
 
     TopAppBar(
@@ -69,7 +69,8 @@ fun GourmetSearchAppBar(
 @Composable
 fun GourmetSearchApp(
     gourmetSearchViewModel: GourmetSearchViewModel,
-    navController: NavHostController = rememberNavController()
+    getLocation : () -> Unit,
+    navController: NavHostController = rememberNavController(),
 ) {
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -79,10 +80,11 @@ fun GourmetSearchApp(
 
     var selectedRestaurant by remember{ mutableStateOf<Restaurant?>(null)}
 
+    var addressLine = gourmetSearchViewModel.addressLine.collectAsState()
+
     Scaffold(
         topBar = {
             GourmetSearchAppBar(
-                currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = {navController.navigateUp()}
             )
@@ -100,17 +102,22 @@ fun GourmetSearchApp(
 
             composable(route = GourmetSearchScreen.Search.name) {
                 SearchScreen(
+                    locationAvailable = gourmetSearchViewModel.locationAvailable,
+                    getLocation = getLocation,
+                    address = addressLine.value,
                     onSearchButtonClick = {
-                        gourmetSearchViewModel.rangeNum = it
-                        gourmetSearchViewModel.getGourmetInfo()
-                        navController.navigate(GourmetSearchScreen.Result.name)
+                        if(gourmetSearchViewModel.locationAvailable){
+                            gourmetSearchViewModel.rangeNum = it
+                            gourmetSearchViewModel.getGourmetInfo()
+                            navController.navigate(GourmetSearchScreen.Result.name)
+                        }
                     },
                     modifier = Modifier.fillMaxSize()
                 )
             }
             composable(route = GourmetSearchScreen.Result.name) {
                 ResultScreen(
-                    gourmetSearchUiState = gourmetSearchViewModel.gourmetSearchUiState,
+                    searchGourmetState = gourmetSearchViewModel.searchGourmetState,
                     onShowDetailButtonClick = {
                         selectedRestaurant = it
                         navController.navigate(GourmetSearchScreen.Detail.name)

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.gourmetsearchapp.R
-import com.example.gourmetsearchapp.model.Restaurant
+import com.example.gourmetsearchapp.gourmetSearchAPI.Restaurant
 
 @Composable
 fun DetailScreen(
@@ -30,7 +30,7 @@ fun DetailScreen(
     Column(modifier = modifier.padding(16.dp)){
         Text(
             text = "${restaurant.name} ",
-            fontSize = 24.sp,
+            fontSize = 32.sp,
             textAlign = TextAlign.Center
         )
         Divider(
