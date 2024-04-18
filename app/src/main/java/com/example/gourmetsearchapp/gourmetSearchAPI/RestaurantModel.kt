@@ -1,4 +1,4 @@
-package com.example.gourmetsearchapp.model
+package com.example.gourmetsearchapp.gourmetSearchAPI
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

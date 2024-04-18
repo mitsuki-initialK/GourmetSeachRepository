@@ -1,4 +1,4 @@
-package com.example.gourmetsearchapp.network
+package com.example.gourmetsearchapp.geoCoder
 
 import android.Manifest
 import android.app.Activity
