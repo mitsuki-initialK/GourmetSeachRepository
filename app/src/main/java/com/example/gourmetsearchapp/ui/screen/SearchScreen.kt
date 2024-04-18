@@ -84,7 +84,7 @@ fun SearchScreen(
             Spacer(modifier = Modifier.size(8.dp))
 
             Text(
-                text = if (locationAvailable) "　$address　" else "　現在地が取得できませんでした　",
+                text = if (locationAvailable) "　現在地：$address　" else "　現在地が取得できませんでした　",
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
