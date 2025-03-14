@@ -8,10 +8,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.gourmetsearchapp.GourmetSearchApplication
 import com.example.gourmetsearchapp.MainActivity
 import com.example.gourmetsearchapp.geoCoder.LocationGetter
-import com.example.gourmetsearchapp.gourmetSearchAPI.GourmetSearchApi
+import com.example.gourmetsearchapp.gourmetSearchAPI.GourmetSearchRepository
 import com.example.gourmetsearchapp.gourmetSearchAPI.Restaurant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +33,7 @@ sealed interface SearchGourmetState {
 }
 
 
-class GourmetSearchViewModel : ViewModel() {
+class GourmetSearchViewModel(private val gourmetSearchRepository : GourmetSearchRepository) : ViewModel(){
 
     var searchGourmetState: SearchGourmetState by mutableStateOf(SearchGourmetState.Loading)
         private set
@@ -71,15 +76,27 @@ class GourmetSearchViewModel : ViewModel() {
 
     fun getGourmetInfo() {
         viewModelScope.launch {
-            searchGourmetState = try{
-                val listResult = GourmetSearchApi.retrofitService.searchGourmet(
-                    lat = lat,
-                    lng = lng,
-                    range = rangeNum
-                ).results.shop
-                SearchGourmetState.Success(listResult)
+            searchGourmetState = SearchGourmetState.Loading
+            searchGourmetState = try {
+                SearchGourmetState.Success(
+                    gourmetSearchRepository.getRestaurantList(
+                        lat = lat,
+                        lng = lng,
+                        range = rangeNum
+                    )
+                )
             } catch (e: IOException) {
                 SearchGourmetState.Error
+            }
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as GourmetSearchApplication)
+                val gourmetSearchRepository = application.container.gourmetSearchRepository
+                GourmetSearchViewModel(gourmetSearchRepository = gourmetSearchRepository)
             }
         }
     }

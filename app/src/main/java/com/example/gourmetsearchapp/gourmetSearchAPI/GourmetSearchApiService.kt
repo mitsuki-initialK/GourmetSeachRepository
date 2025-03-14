@@ -7,18 +7,6 @@ import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-val json = Json {
-    ignoreUnknownKeys = true
-}
-
-private const val BASE_URL =
-    "https://webservice.recruit.co.jp/hotpepper/gourmet/"
-
-private val retrofit = Retrofit.Builder()
-    .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-    .baseUrl(BASE_URL)
-    .build()
-
 interface GourmetSearchApiService {
     @GET("v1/")
     suspend fun searchGourmet(
@@ -31,11 +19,6 @@ interface GourmetSearchApiService {
     ) : Results
 }
 
-object GourmetSearchApi {
-    val retrofitService : GourmetSearchApiService by lazy {
-        retrofit.create(GourmetSearchApiService::class.java)
-    }
-}
 
 
 

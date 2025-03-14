@@ -18,7 +18,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GourmetSearchAppTheme {
-                val gourmetSearchViewModel: GourmetSearchViewModel = viewModel()
+                val gourmetSearchViewModel: GourmetSearchViewModel =
+                    viewModel(factory = GourmetSearchViewModel.Factory)
                 gourmetSearchViewModel.getLocation(this)
                 GourmetSearchApp(
                     gourmetSearchViewModel,
