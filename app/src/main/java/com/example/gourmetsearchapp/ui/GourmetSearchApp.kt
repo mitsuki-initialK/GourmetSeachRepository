@@ -1,5 +1,7 @@
 package com.example.gourmetsearchapp.ui
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,17 +35,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.gourmetsearchapp.Location.LocationRepository
 import com.example.gourmetsearchapp.R
-import com.example.gourmetsearchapp.gourmetSearchAPI.Restaurant
+import com.example.gourmetsearchapp.GourmetSearch.GourmetSearchRepository
+import com.example.gourmetsearchapp.GourmetSearch.Restaurant
 import com.example.gourmetsearchapp.ui.screen.DetailScreen
-import com.example.gourmetsearchapp.ui.screen.GourmetSearchViewModel
 import com.example.gourmetsearchapp.ui.screen.ResultScreen
 import com.example.gourmetsearchapp.ui.screen.SearchScreen
+import com.example.gourmetsearchapp.ui.screen.SearchViewModel
 
 
 enum class GourmetSearchScreen(@StringRes val title : Int) {
@@ -98,22 +104,27 @@ fun GourmetSearchAppBar(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GourmetSearchApp(
-    gourmetSearchViewModel: GourmetSearchViewModel,
-    getLocation : () -> Unit,
+    gourmetSearchRepository: GourmetSearchRepository,
+    locationRepository: LocationRepository,
     navController: NavHostController = rememberNavController(),
 ) {
 
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = GourmetSearchScreen.valueOf(
-        backStackEntry?.destination?.route ?: GourmetSearchScreen.Search.name
+    val searchViewModel : SearchViewModel = viewModel(
+        factory = viewModelFactory {
+            initializer {
+                SearchViewModel(gourmetSearchRepository, locationRepository)
+            }
+        }
     )
+
+    val backStackEntry by navController.currentBackStackEntryAsState()
 
     var selectedRestaurant by remember{ mutableStateOf<Restaurant?>(null)}
 
-    var addressLine = gourmetSearchViewModel.addressLine.collectAsState()
 
     Scaffold(
         topBar = {
@@ -135,30 +146,29 @@ fun GourmetSearchApp(
 
             composable(route = GourmetSearchScreen.Search.name) {
                 SearchScreen(
-                    locationAvailable = gourmetSearchViewModel.locationAvailable,
-                    getLocation = getLocation,
-                    address = addressLine.value,
+                    getLocationState = searchViewModel.getLocationState,
+                    retryGetLocation = searchViewModel::getLocation,
                     onSearchButtonClick = {
-                        if(gourmetSearchViewModel.locationAvailable){
-                            gourmetSearchViewModel.rangeNum = it
-                            gourmetSearchViewModel.getGourmetInfo()
-                            navController.navigate(GourmetSearchScreen.Result.name)
-                        }
+                        searchViewModel.rangeNum = it
+                        searchViewModel.getGourmetInfo()
+                        navController.navigate(GourmetSearchScreen.Result.name)
                     },
                     modifier = Modifier.fillMaxSize()
                 )
             }
+
             composable(route = GourmetSearchScreen.Result.name) {
                 ResultScreen(
-                    searchGourmetState = gourmetSearchViewModel.searchGourmetState,
+                    searchGourmetState = searchViewModel.searchGourmetState,
                     onShowDetailButtonClick = {
                         selectedRestaurant = it
                         navController.navigate(GourmetSearchScreen.Detail.name)
                     } ,
-                    retryAction = gourmetSearchViewModel::getGourmetInfo,
+                    retryAction = searchViewModel::getGourmetInfo,
                     modifier = Modifier.fillMaxSize()
                 )
             }
+
             composable(route = GourmetSearchScreen.Detail.name) {
                 selectedRestaurant?.let { restaurant ->
                     DetailScreen(

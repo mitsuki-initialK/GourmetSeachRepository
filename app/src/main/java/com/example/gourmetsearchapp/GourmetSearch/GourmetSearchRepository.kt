@@ -1,4 +1,4 @@
-package com.example.gourmetsearchapp.gourmetSearchAPI
+package com.example.gourmetsearchapp.GourmetSearch
 
 
 interface  GourmetSearchRepository{

@@ -14,13 +14,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.gourmetsearchapp.R
-import com.example.gourmetsearchapp.gourmetSearchAPI.Restaurant
+import com.example.gourmetsearchapp.GourmetSearch.Restaurant
 
 @Composable
 fun DetailScreen(
@@ -40,17 +41,17 @@ fun DetailScreen(
         )
         Spacer(Modifier.height(16.dp))
         Row{
-            Text(text = "住　　所：")
+            Text(text = stringResource(R.string.address))
             Text(text = "${restaurant.address} ")
         }
         Spacer(Modifier.height(8.dp))
         Row{
-            Text(text = "アクセス：")
+            Text(text = stringResource(R.string.access))
             Text(text = "${restaurant.access} ")
         }
         Spacer(Modifier.height(8.dp))
         Row{
-            Text(text = "営業時間：")
+            Text(text = stringResource(R.string.opening_hours))
             Text(text = "${restaurant.open} ")
         }
         Spacer(Modifier.height(16.dp))

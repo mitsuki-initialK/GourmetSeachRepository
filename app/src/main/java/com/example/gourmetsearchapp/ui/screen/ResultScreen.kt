@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,7 +45,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.gourmetsearchapp.R
-import com.example.gourmetsearchapp.gourmetSearchAPI.Restaurant
+import com.example.gourmetsearchapp.GourmetSearch.Restaurant
 import kotlin.math.min
 
 
@@ -75,15 +76,15 @@ fun SuccessScreen(
     onShowDetailButtonClick : (Restaurant) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val num = 10 //1ページに表示する数
-    val pagerState = rememberPagerState(pageCount = { ((restaurantList.size - 1) / num) + 1 })
+    val maxItemsPerPage = 10 //1ページに表示する数
+    val pagerState = rememberPagerState(pageCount = { ((restaurantList.size - 1) / maxItemsPerPage) + 1 })
 
-    Text("${restaurantList.size}件見つかりました（最大100件まで表示）")
+    Text(stringResource(R.string.success_gourmet_search, restaurantList.size))
     HorizontalPager(state = pagerState, modifier = modifier) { page ->
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
             itemsIndexed(restaurantList) { index, restaurant ->
-                val startIndex = page * num
-                val endIndex = startIndex + min( num - 1, restaurantList.size - startIndex)
+                val startIndex = page * maxItemsPerPage
+                val endIndex = startIndex + min( maxItemsPerPage - 1, restaurantList.size - startIndex)
                 if(index in startIndex..endIndex){
                     RestaurantCard(
                         restaurant = restaurant,
@@ -126,7 +127,8 @@ fun RestaurantCard(
 ) {
     Card(modifier = modifier){
         Row(modifier = Modifier.padding(8.dp)){
-            Box(modifier = Modifier.size(72.dp)
+            Box(modifier = Modifier
+                .size(72.dp)
                 .clip(RoundedCornerShape(8.dp))
             ){
                 AsyncImage(
@@ -183,9 +185,9 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
             modifier = Modifier.size(200.dp),
             painter = painterResource(id = R.drawable.ic_connection_error), contentDescription = ""
         )
-        Text(text = "エラーが発生しました", modifier = Modifier.padding(16.dp))
+        Text(text = stringResource(R.string.catch_error), modifier = Modifier.padding(16.dp))
         Button(onClick = retryAction, ) {
-            Text(text = "再試行")
+            Text(text = stringResource(R.string.retry))
         }
     }
 }

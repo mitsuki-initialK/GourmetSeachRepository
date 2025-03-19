@@ -1,11 +1,12 @@
 package com.example.gourmetsearchapp.ui.screen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,20 +28,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gourmetsearchapp.R
 
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun SearchScreen(
-    locationAvailable : Boolean,
-    getLocation : () -> Unit,
-    address : String,
+    getLocationState: GetLocationState,
+    retryGetLocation : () -> Unit,
     onSearchButtonClick : (Int) -> Unit,
-    modifier : Modifier = Modifier
+    modifier : Modifier = Modifier,
 ) {
 
     val radioOptions = listOf("300m", "500m", "1000m", "2000m", "3000m")
@@ -51,17 +52,18 @@ fun SearchScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "検索範囲を選択してください",
+            text = stringResource(R.string.select_search_range),
             fontSize = 24.sp,
         )
 
         Spacer(modifier = Modifier.size(16.dp))
 
         Row{
-            val color = if (locationAvailable) Color(0, 0, 255, 128)
+            val color = if (getLocationState is GetLocationState.Success)
+                Color(0, 0, 255, 128)
                 else Color(255, 0, 0, 128)
 
-            if(locationAvailable){
+            if(getLocationState is GetLocationState.Success){
                 Icon(
                     painter = painterResource(id = R.drawable.ic_location_searching),
                     modifier = Modifier.size(20.dp),
@@ -70,7 +72,7 @@ fun SearchScreen(
                 )
             }else{
                 IconButton(
-                    onClick = getLocation,
+                    onClick = retryGetLocation,
                     modifier = Modifier.size(20.dp),
                 ) {
                     Icon(
@@ -84,7 +86,11 @@ fun SearchScreen(
             Spacer(modifier = Modifier.size(8.dp))
 
             Text(
-                text = if (locationAvailable) "　現在地：$address　" else "　現在地が取得できませんでした　",
+                text = when(getLocationState){
+                    is GetLocationState.Success -> stringResource(R.string.location) + getLocationState.addressLine
+                    is GetLocationState.Loading -> stringResource(R.string.getting_location)
+                    is GetLocationState.Error   -> stringResource(R.string.faild_to_get_location)
+                } ,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -122,7 +128,11 @@ fun SearchScreen(
         Spacer(modifier = Modifier.size(64.dp))
 
         Button(
-            onClick = { onSearchButtonClick(radioOptions.indexOf(selectedOption) + 1) },
+            onClick = {
+                if(getLocationState is GetLocationState.Success) {
+                    onSearchButtonClick(radioOptions.indexOf(selectedOption) + 1)
+                }
+            },
         ) {
             Icon(
                 imageVector = Icons.Filled.Search,
@@ -131,21 +141,9 @@ fun SearchScreen(
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
-                text = "現在の条件で検索",
+                text = stringResource(R.string.search_gourmet_current_condition),
                 fontSize = 16.sp
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun Preview(){
-    SearchScreen(
-        locationAvailable = true,
-        getLocation = {},
-        address = "滋賀県甲賀市",
-        onSearchButtonClick = {},
-        modifier = Modifier.fillMaxSize()
-    )
 }

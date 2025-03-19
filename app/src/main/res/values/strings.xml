@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">GourmetSearchApp</string>
+    <string name="select_search_range">検索範囲を選択してください</string>
+    <string name="faild_to_get_location">"　現在地の取得に失敗しました "</string>
+    <string name="getting_location">"　現在地を取得しています…… "</string>
+    <string name="location">"　現在地 ： "</string>
+    <string name="search_gourmet_current_condition">現在の条件で検索</string>
+    <string name="retry">再試行</string>
+    <string name="catch_error">エラーが発生しました</string>
+    <string name="success_gourmet_search">%1$s件見つかりました（最大100件まで表示）</string>
+    <string name="access">アクセス：</string>
+    <string name="address">住　　所：</string>
+    <string name="opening_hours">営業時間：</string>
 </resources>

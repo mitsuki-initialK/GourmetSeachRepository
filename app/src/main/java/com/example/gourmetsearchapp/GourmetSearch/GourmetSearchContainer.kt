@@ -1,4 +1,4 @@
-package com.example.gourmetsearchapp.gourmetSearchAPI
+package com.example.gourmetsearchapp.GourmetSearch
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
