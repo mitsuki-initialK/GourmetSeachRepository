@@ -1,6 +1,5 @@
 package com.example.gourmetsearchapp.ui.screen
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +29,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,36 +40,41 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.gourmetsearchapp.R
-import com.example.gourmetsearchapp.GourmetSearch.Restaurant
+import com.example.gourmetsearchapp.gourmetSearch.Device
+import com.example.gourmetsearchapp.gourmetSearch.Restaurant
 import kotlin.math.min
 
 
 @Composable
 fun ResultScreen(
-    searchGourmetState : SearchGourmetState,
+    modifier : Modifier = Modifier,
+    resultViewModel: ResultViewModel = hiltViewModel(),
     onShowDetailButtonClick : (Restaurant) -> Unit,
-    retryAction : () -> Unit,
-    modifier : Modifier = Modifier
 ) {
+
+    val resultUiState = resultViewModel.uiState.collectAsState()
+    val gourmetSearchState = resultUiState.value.gourmetSearchState
+
     Column(modifier = modifier) {
-        when (searchGourmetState) {
-            is SearchGourmetState.Loading -> LoadingScreen(modifier)
-            is SearchGourmetState.Success -> SuccessScreen(
-                searchGourmetState.restaurantList,
+        when (gourmetSearchState) {
+            is GourmetSearchState.Loading -> LoadingScreen(modifier)
+            is GourmetSearchState.Success -> SuccessScreen(
+                gourmetSearchState.restaurantList,
                 onShowDetailButtonClick,
                 modifier = Modifier.weight(1f)
             )
-            is SearchGourmetState.Error -> ErrorScreen(retryAction, modifier)
+            is GourmetSearchState.Error -> ErrorScreen(resultViewModel::getGourmetInfo, modifier)
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SuccessScreen(
     restaurantList : List<Restaurant>,
@@ -127,6 +132,7 @@ fun RestaurantCard(
 ) {
     Card(modifier = modifier){
         Row(modifier = Modifier.padding(8.dp)){
+
             Box(modifier = Modifier
                 .size(72.dp)
                 .clip(RoundedCornerShape(8.dp))
@@ -159,9 +165,23 @@ fun RestaurantCard(
                     Icon(
                         imageVector = Icons.Filled.LocationOn,
                         modifier = Modifier.size(20.dp),
+                        tint = Color(255, 0, 0, 128),
+                        contentDescription = ""
+                    )
+
+                    Text(
+                        text = "目的地まで " + "${restaurant.distance}" + "m   ",
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                    )
+
+                    Icon(
+                        imageVector = Icons.Filled.LocationOn,
+                        modifier = Modifier.size(20.dp),
                         tint = Color(0, 0, 255, 128),
                         contentDescription = ""
                     )
+
                     Text(
                         text = restaurant.access,
                         fontSize = 14.sp,
@@ -186,7 +206,7 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
             painter = painterResource(id = R.drawable.ic_connection_error), contentDescription = ""
         )
         Text(text = stringResource(R.string.catch_error), modifier = Modifier.padding(16.dp))
-        Button(onClick = retryAction, ) {
+        Button(onClick = retryAction) {
             Text(text = stringResource(R.string.retry))
         }
     }
@@ -205,3 +225,25 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
         )
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun RestaurantCardPreview(){
+    val restaurant = Restaurant(
+        id = "0000000",
+        name = "鶏あえず 蒲田店",
+        address = "東京都大田区西蒲田７-3-3 8F",
+        access = "JR 京浜東北線 蒲田駅 徒歩1分（蒲田駅西口ドン・キホーテ8F",
+        open = "月～木: 14:00～翌2:00 （料理L.O. 翌1:00 ドリンクL.O. 翌1:30）金、土: 12:00～翌2:00 （料理L.O. 翌1:00 ドリンクL.O. 翌1:30)",
+        logo = "https://imgfp.hotp.jp/IMGH/13/19/P044811319/P044811319_69.jpg",
+        lat = 35.5632495372,
+        lng = 139.7156569299,
+        photo = Device(
+            pc = emptyMap(),
+            mobile = emptyMap()
+        ),
+        distance = 500,
+    )
+    RestaurantCard(restaurant)
+}
+

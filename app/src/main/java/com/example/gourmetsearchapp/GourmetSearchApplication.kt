@@ -1,4 +1,7 @@
 package com.example.gourmetsearchapp
 
-class GourmetSearchApplication {
-}
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+
+@HiltAndroidApp
+class GourmetSearchApplication  : Application()

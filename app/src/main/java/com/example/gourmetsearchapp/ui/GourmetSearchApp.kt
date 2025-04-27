@@ -1,8 +1,6 @@
 package com.example.gourmetsearchapp.ui
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.annotation.StringRes
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -15,7 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,21 +41,96 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.gourmetsearchapp.Location.LocationRepository
+import com.example.gourmetsearchapp.location.LocationRepository
 import com.example.gourmetsearchapp.R
-import com.example.gourmetsearchapp.GourmetSearch.GourmetSearchRepository
-import com.example.gourmetsearchapp.GourmetSearch.Restaurant
+import com.example.gourmetsearchapp.data.DatabaseRepository
+import com.example.gourmetsearchapp.gourmetSearch.GourmetSearchRepository
+import com.example.gourmetsearchapp.gourmetSearch.Restaurant
 import com.example.gourmetsearchapp.ui.screen.DetailScreen
+import com.example.gourmetsearchapp.ui.screen.GetLocationState
 import com.example.gourmetsearchapp.ui.screen.ResultScreen
+import com.example.gourmetsearchapp.ui.screen.ResultViewModel
 import com.example.gourmetsearchapp.ui.screen.SearchScreen
 import com.example.gourmetsearchapp.ui.screen.SearchViewModel
+import javax.inject.Inject
 
 
-enum class GourmetSearchScreen(@StringRes val title : Int) {
-    Search(title = 1),
-    Result(title = 2),
-    Detail(title = 3),
+enum class GourmetSearchScreen {
+    Search,
+    Result,
+    Detail,
 }
+
+
+@Composable
+fun GourmetSearchApp(
+    locationRepository: LocationRepository,
+    navController: NavHostController = rememberNavController(),
+) {
+
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen = GourmetSearchScreen.valueOf(
+        backStackEntry?.destination?.route ?: GourmetSearchScreen.Search.name
+    )
+
+    var selectedRestaurant by remember{ mutableStateOf<Restaurant?>(null)}
+
+
+    Scaffold(
+        topBar = {
+            GourmetSearchAppBar(
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateUp = {navController.navigateUp()}
+            )
+        }
+    ) { innerPadding ->
+
+        NavHost(
+            navController = navController,
+            startDestination = GourmetSearchScreen.Search.name,
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+        ) {
+
+            composable(route = GourmetSearchScreen.Search.name) {
+                SearchScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    locationRepository,
+                    onSearchButtonClick = { location, param ->
+//                        resultViewModel.getGourmetInfo(
+//                            lat = location.latitude,
+//                            lng = location.longitude,
+//                            range = param.rangeNum + 1
+//                        )
+                        navController.navigate(GourmetSearchScreen.Result.name)
+                    },
+                )
+            }
+
+            composable(route = GourmetSearchScreen.Result.name) {
+                ResultScreen(
+                    onShowDetailButtonClick = {
+                        selectedRestaurant = it
+                        navController.navigate(GourmetSearchScreen.Detail.name)
+                    } ,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            composable(route = GourmetSearchScreen.Detail.name) {
+                selectedRestaurant?.let {
+                    DetailScreen(
+                        it,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +146,7 @@ fun GourmetSearchAppBar(
                 if (canNavigateBack) {
                     IconButton(onClick = navigateUp, modifier = Modifier.fillMaxHeight()) {
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "backButton"
                         )
                     }
@@ -102,83 +175,6 @@ fun GourmetSearchAppBar(
         ),
         modifier = modifier,
     )
-}
-
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun GourmetSearchApp(
-    gourmetSearchRepository: GourmetSearchRepository,
-    locationRepository: LocationRepository,
-    navController: NavHostController = rememberNavController(),
-) {
-
-    val searchViewModel : SearchViewModel = viewModel(
-        factory = viewModelFactory {
-            initializer {
-                SearchViewModel(gourmetSearchRepository, locationRepository)
-            }
-        }
-    )
-
-    val backStackEntry by navController.currentBackStackEntryAsState()
-
-    var selectedRestaurant by remember{ mutableStateOf<Restaurant?>(null)}
-
-
-    Scaffold(
-        topBar = {
-            GourmetSearchAppBar(
-                canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = {navController.navigateUp()}
-            )
-        }
-    ) { innerPadding ->
-
-        NavHost(
-            navController = navController,
-            startDestination = GourmetSearchScreen.Search.name,
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
-        ) {
-
-            composable(route = GourmetSearchScreen.Search.name) {
-                SearchScreen(
-                    getLocationState = searchViewModel.getLocationState,
-                    retryGetLocation = searchViewModel::getLocation,
-                    onSearchButtonClick = {
-                        searchViewModel.rangeNum = it
-                        searchViewModel.getGourmetInfo()
-                        navController.navigate(GourmetSearchScreen.Result.name)
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            composable(route = GourmetSearchScreen.Result.name) {
-                ResultScreen(
-                    searchGourmetState = searchViewModel.searchGourmetState,
-                    onShowDetailButtonClick = {
-                        selectedRestaurant = it
-                        navController.navigate(GourmetSearchScreen.Detail.name)
-                    } ,
-                    retryAction = searchViewModel::getGourmetInfo,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            composable(route = GourmetSearchScreen.Detail.name) {
-                selectedRestaurant?.let { restaurant ->
-                    DetailScreen(
-                        restaurant,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-        }
-    }
 }
 
 

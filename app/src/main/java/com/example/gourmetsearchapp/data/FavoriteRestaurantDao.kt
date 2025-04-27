@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface FavoriteRestaurantDao {
     @Query("SELECT * from favoriteRestaurants")
-    fun getAllFavoriteRestrains() : Flow<List<FavoriteRestaurant>>
+    fun getAllFavoriteRestaurants() : Flow<List<FavoriteRestaurant>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(favoriteRestrains: FavoriteRestaurant)
+    suspend fun insert(favoriteRestaurant: FavoriteRestaurant)
 
     @Delete
-    suspend fun delete(favoriteRestrains: FavoriteRestaurant)
+    suspend fun delete(favoriteRestaurant: FavoriteRestaurant)
 }

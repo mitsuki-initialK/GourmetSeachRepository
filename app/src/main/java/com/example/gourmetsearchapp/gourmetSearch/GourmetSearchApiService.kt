@@ -1,4 +1,4 @@
-package com.example.gourmetsearchapp.GourmetSearch
+package com.example.gourmetsearchapp.gourmetSearch
 
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -12,7 +12,7 @@ interface GourmetSearchApiService {
         @Query("lng") lng: Double,
         @Query("range") range: Int,  //１～５で指定
         @Query("count") count : Int = 100, //最大100件まで表示
-    ) : Results
+    ) : Result
 }
 
 

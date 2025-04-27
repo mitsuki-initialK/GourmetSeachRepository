@@ -1,35 +1,45 @@
-package com.example.gourmetsearchapp.Location
+package com.example.gourmetsearchapp.location
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
+import android.location.Geocoder.GeocodeListener
 import android.location.Location
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
+import dagger.Provides
+import dagger.hilt.android.qualifiers.ActivityContext
+import dagger.hilt.android.scopes.ActivityRetainedScoped
+import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.io.IOException
 import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 
-interface LocationRepositoryInterface {
+interface LocationRepository {
     suspend fun getCoordinates() : Location
-    fun getAddressFromCoordinate(lat : Double, lng : Double) : String
+    suspend fun getAddressFromCoordinate(lat : Double, lng : Double) : String
     fun requestLocationPermission()
 }
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-class LocationRepository(private val activity: Activity) : LocationRepositoryInterface{
+
+class NetworkLocationRepository(
+    private val activity: Activity
+) : LocationRepository {
+
 
     init{
         requestLocationPermission()
     }
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun getCoordinates() : Location {
@@ -64,31 +74,32 @@ class LocationRepository(private val activity: Activity) : LocationRepositoryInt
     }
 
 
-    override fun getAddressFromCoordinate(lat : Double, lng : Double) : String {
+    override suspend fun getAddressFromCoordinate(lat : Double, lng : Double) : String {
         val geocoder = Geocoder(activity, Locale.getDefault())
 
-        var addressLine: String? = null
-
-        try {
-            val addresses: MutableList<Address>? = geocoder.getFromLocation(lat, lng, 1)
-            if (addresses != null) {
-                if (addresses.isNotEmpty()) {
-                    val address: Address = addresses[0]
-                    if (address.getAddressLine(0) != null) {
-                        addressLine = address.getAddressLine(0)
+        return suspendCancellableCoroutine { continuation ->
+            geocoder.getFromLocation(lat, lng, 1, object : GeocodeListener{
+                override fun onGeocode(addresses: MutableList<Address>) {
+                    if(addresses.isNotEmpty()){
+                        val address: Address = addresses[0]
+                        if (address.getAddressLine(0) != null) {
+                            val addressLine = address.getAddressLine(0)
+                            continuation.resume(addressLine)
+                        }
                     }
                 }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
 
-        return requireNotNull(addressLine) { "住所が取得できませんでした" }
+                override fun onError(errorMessage: String?) {
+                    super.onError(errorMessage)
+                    continuation.resumeWithException(Exception("ジオコードに失敗しました"))
+                }
+            })
+        }
     }
 
 
     override fun requestLocationPermission() {
-        val LOCATION_PERMISSION_REQUEST_CODE = 1001
+        val locationPermissionRequestCode = 1001
 
         // 位置情報の権限があるか確認する
         val isAccept = ContextCompat.checkSelfPermission(
@@ -101,7 +112,7 @@ class LocationRepository(private val activity: Activity) : LocationRepositoryInt
             ActivityCompat.requestPermissions(
                 activity,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
+                locationPermissionRequestCode
             )
         }
     }

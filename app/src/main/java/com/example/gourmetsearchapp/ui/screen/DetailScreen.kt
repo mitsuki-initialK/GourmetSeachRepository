@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,12 +16,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.gourmetsearchapp.R
-import com.example.gourmetsearchapp.GourmetSearch.Restaurant
+import com.example.gourmetsearchapp.gourmetSearch.Device
+import com.example.gourmetsearchapp.gourmetSearch.Restaurant
 
 @Composable
 fun DetailScreen(
@@ -32,12 +35,14 @@ fun DetailScreen(
         Text(
             text = "${restaurant.name} ",
             fontSize = 32.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Visible,
             textAlign = TextAlign.Center
         )
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.fillMaxWidth(),
-            color = Color.Blue,
-            thickness = 1.dp
+            thickness = 1.dp,
+            color = Color.Blue
         )
         Spacer(Modifier.height(16.dp))
         Row{
@@ -68,6 +73,27 @@ fun DetailScreen(
         )
     }
 
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DetailScreenPreview(){
+    val restaurant = Restaurant(
+        id = "0000000",
+        name = "鶏あえず 蒲田店",
+        address = "東京都大田区西蒲田７-3-3 8F",
+        access = "JR 京浜東北線 蒲田駅 徒歩1分（蒲田駅西口ドン・キホーテ8F",
+        open = "月～木: 14:00～翌2:00 （料理L.O. 翌1:00 ドリンクL.O. 翌1:30）金、土: 12:00～翌2:00 （料理L.O. 翌1:00 ドリンクL.O. 翌1:30)",
+        logo = "https://imgfp.hotp.jp/IMGH/13/19/P044811319/P044811319_69.jpg",
+        lat = 35.5632495372,
+        lng = 139.7156569299,
+        photo = Device(
+            pc = emptyMap(),
+            mobile = emptyMap()
+        ),
+        distance = 500,
+    )
+    DetailScreen(restaurant)
 }
 
 

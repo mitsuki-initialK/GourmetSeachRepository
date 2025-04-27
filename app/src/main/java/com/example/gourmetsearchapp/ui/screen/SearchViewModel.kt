@@ -2,94 +2,64 @@ package com.example.gourmetsearchapp.ui.screen
 
 
 import android.location.Location
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gourmetsearchapp.Location.LocationRepository
-import com.example.gourmetsearchapp.GourmetSearch.GourmetSearchRepository
-import com.example.gourmetsearchapp.GourmetSearch.Restaurant
+import com.example.gourmetsearchapp.location.LocationRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-
-sealed interface SearchGourmetState {
-    data class Success(val restaurantList : List<Restaurant>) : SearchGourmetState
-    object Loading : SearchGourmetState
-    object Error : SearchGourmetState
-}
 
 sealed interface GetLocationState {
     data class Success(val location: Location, val addressLine: String) : GetLocationState
-    object Loading : GetLocationState
-    object Error : GetLocationState
+    data object Loading : GetLocationState
+    data object Error : GetLocationState
 }
 
+data class SearchUiState(
+    var rangeNum: Int = 0,
+    var getLocationState: GetLocationState = GetLocationState.Loading,
+)
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+
 class SearchViewModel(
-    private val gourmetSearchRepository : GourmetSearchRepository,
     private val locationRepository: LocationRepository
 ) : ViewModel(){
-    var searchGourmetState: SearchGourmetState by mutableStateOf(SearchGourmetState.Loading)
-        private set
 
-    var getLocationState : GetLocationState by mutableStateOf(GetLocationState.Loading)
-        private set
-
-    var rangeNum = 1
+    private val _uiState = MutableStateFlow(SearchUiState())
+    val uiState = _uiState.asStateFlow()
 
 
     init{
         getLocation()
     }
 
+
+    fun updateUiState(newNum : Int){
+        _uiState.update { currentState ->
+            currentState.copy(
+                rangeNum = newNum
+            )
+        }
+    }
+
     fun getLocation() {
         viewModelScope.launch {
-            getLocationState = GetLocationState.Loading
-            getLocationState = try {
+            _uiState.update { it.copy(getLocationState = GetLocationState.Loading) }
+            val newState = try {
                 val location : Location = locationRepository.getCoordinates()
+                location.latitude = 34.686
+                location.longitude = 135.520
                 val addressLine : String = locationRepository.getAddressFromCoordinate(location.latitude, location.longitude)
-
                 GetLocationState.Success(location, addressLine)
             } catch (e: Exception) {
                 GetLocationState.Error
             }
+            _uiState.update { it.copy(getLocationState = newState) }
         }
     }
-
-    fun getGourmetInfo() {
-
-        viewModelScope.launch {
-            searchGourmetState = SearchGourmetState.Loading
-            searchGourmetState = try {
-                SearchGourmetState.Success(
-                    gourmetSearchRepository.getRestaurantList(
-                        lat = (getLocationState as GetLocationState.Success).location.latitude,
-                        lng = (getLocationState as GetLocationState.Success).location.longitude,
-                        range = rangeNum
-                    )
-                )
-            } catch (e: Exception) {
-                SearchGourmetState.Error
-            }
-        }
-    }
-
-//    companion object {
-//        val Factory : ViewModelProvider.Factory = viewModelFactory{
-//            initializer {
-//                val application = (this[APPLICATION_KEY] as GourmetSearchApplication)
-//                val gourmetSearchRepository = application.container.gourmetSearchRepository
-//                val locationRepository = application.locationRepository
-//                SearchViewModel(
-//                    gourmetSearchRepository = gourmetSearchRepository,
-//                    locationRepository = locationRepository
-//                )
-//            }
-//        }
-//    }
 
 }

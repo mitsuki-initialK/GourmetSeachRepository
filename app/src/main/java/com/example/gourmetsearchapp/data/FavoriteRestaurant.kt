@@ -3,10 +3,10 @@ package com.example.gourmetsearchapp.data
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "favoriteRestraints")
-data class FavoriteRestrains (
-    @PrimaryKey(autoGenerate = true)
-    val id : Int = 0,
+@Entity(tableName = "favoriteRestaurants")
+data class FavoriteRestaurant (
+    @PrimaryKey
+    val id : String,
     val name: String,
     val address: String,
     val access : String,

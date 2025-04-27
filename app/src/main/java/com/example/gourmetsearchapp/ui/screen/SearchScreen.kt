@@ -1,7 +1,6 @@
 package com.example.gourmetsearchapp.ui.screen
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.location.Location
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
@@ -20,8 +19,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,20 +37,29 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gourmetsearchapp.R
+import com.example.gourmetsearchapp.location.LocationRepository
+import kotlinx.coroutines.flow.StateFlow
 
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun SearchScreen(
-    getLocationState: GetLocationState,
-    retryGetLocation : () -> Unit,
-    onSearchButtonClick : (Int) -> Unit,
     modifier : Modifier = Modifier,
+    locationRepository: LocationRepository,
+    onSearchButtonClick : (Location, SearchUiState) -> Unit,
+    searchViewModel: SearchViewModel = viewModel(
+        factory = viewModelFactory {
+            initializer { SearchViewModel(locationRepository) }
+        }
+    )
 ) {
 
-    val radioOptions = listOf("300m", "500m", "1000m", "2000m", "3000m")
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0] ) }
+    val searchUiState by searchViewModel.uiState.collectAsState()
+    val rangeOptions = listOf("300m", "500m", "1000m", "2000m", "3000m")
 
     Column(
         modifier = modifier.padding(16.dp),
@@ -59,11 +73,11 @@ fun SearchScreen(
         Spacer(modifier = Modifier.size(16.dp))
 
         Row{
-            val color = if (getLocationState is GetLocationState.Success)
+            val color = if (searchUiState.getLocationState is GetLocationState.Success)
                 Color(0, 0, 255, 128)
                 else Color(255, 0, 0, 128)
 
-            if(getLocationState is GetLocationState.Success){
+            if(searchUiState.getLocationState is GetLocationState.Success){
                 Icon(
                     painter = painterResource(id = R.drawable.ic_location_searching),
                     modifier = Modifier.size(20.dp),
@@ -72,7 +86,7 @@ fun SearchScreen(
                 )
             }else{
                 IconButton(
-                    onClick = retryGetLocation,
+                    onClick = searchViewModel::getLocation,
                     modifier = Modifier.size(20.dp),
                 ) {
                     Icon(
@@ -86,8 +100,8 @@ fun SearchScreen(
             Spacer(modifier = Modifier.size(8.dp))
 
             Text(
-                text = when(getLocationState){
-                    is GetLocationState.Success -> stringResource(R.string.location) + getLocationState.addressLine
+                text = when(val state = searchUiState.getLocationState){
+                    is GetLocationState.Success -> stringResource(R.string.location) + state.addressLine
                     is GetLocationState.Loading -> stringResource(R.string.getting_location)
                     is GetLocationState.Error   -> stringResource(R.string.faild_to_get_location)
                 } ,
@@ -103,24 +117,18 @@ fun SearchScreen(
 
         Spacer(modifier = Modifier.size(64.dp))
 
-        radioOptions.forEach { text ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .selectable(
-                        selected = (text == selectedOption),
-                        onClick = { onOptionSelected(text) }
-                    )
-                    .padding(horizontal = 16.dp),
-            ) {
-                RadioButton(
-                    selected = (text == selectedOption),
-                    onClick = { onOptionSelected(text) }
-                )
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 16.dp)
+        SingleChoiceSegmentedButtonRow {
+            rangeOptions.forEachIndexed {index, label ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = rangeOptions.size
+                    ),
+                    onClick = {
+                        searchViewModel.updateUiState(index)
+                    },
+                    selected = index == searchUiState.rangeNum,
+                    label = { Text(label) }
                 )
             }
         }
@@ -129,8 +137,9 @@ fun SearchScreen(
 
         Button(
             onClick = {
-                if(getLocationState is GetLocationState.Success) {
-                    onSearchButtonClick(radioOptions.indexOf(selectedOption) + 1)
+                val state = searchUiState.getLocationState
+                if(state is GetLocationState.Success) {
+                    onSearchButtonClick(state.location, searchUiState)
                 }
             },
         ) {
@@ -147,3 +156,4 @@ fun SearchScreen(
         }
     }
 }
+
