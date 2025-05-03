@@ -1,6 +1,7 @@
 package com.example.gourmetsearchapp.ui
 
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -30,51 +31,37 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.gourmetsearchapp.location.LocationRepository
 import com.example.gourmetsearchapp.R
-import com.example.gourmetsearchapp.data.DatabaseRepository
-import com.example.gourmetsearchapp.gourmetSearch.GourmetSearchRepository
-import com.example.gourmetsearchapp.gourmetSearch.Restaurant
+import com.example.gourmetsearchapp.location.NetworkLocationRepository
 import com.example.gourmetsearchapp.ui.screen.DetailScreen
-import com.example.gourmetsearchapp.ui.screen.GetLocationState
 import com.example.gourmetsearchapp.ui.screen.ResultScreen
-import com.example.gourmetsearchapp.ui.screen.ResultViewModel
 import com.example.gourmetsearchapp.ui.screen.SearchScreen
-import com.example.gourmetsearchapp.ui.screen.SearchViewModel
-import javax.inject.Inject
 
-
-enum class GourmetSearchScreen {
-    Search,
-    Result,
-    Detail,
-}
 
 
 @Composable
-fun GourmetSearchApp(
-    locationRepository: LocationRepository,
+fun GourmetSearchNavGraph(
     navController: NavHostController = rememberNavController(),
+    startDestination : String = GourmetSearchDestinations.SEARCH_ROUTE,
+    navActions : GourmetSearchNavigationActions = remember(navController) {
+        GourmetSearchNavigationActions(navController)
+    }
 ) {
 
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = GourmetSearchScreen.valueOf(
-        backStackEntry?.destination?.route ?: GourmetSearchScreen.Search.name
-    )
+    val currentScreen = backStackEntry?.destination?.route ?: startDestination
 
-    var selectedRestaurant by remember{ mutableStateOf<Restaurant?>(null)}
-
+    val context = LocalContext.current
+    val locationRepository = NetworkLocationRepository(context as Activity)
 
     Scaffold(
         topBar = {
@@ -87,45 +74,36 @@ fun GourmetSearchApp(
 
         NavHost(
             navController = navController,
-            startDestination = GourmetSearchScreen.Search.name,
+            startDestination = startDestination,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
         ) {
 
-            composable(route = GourmetSearchScreen.Search.name) {
+            composable(route = GourmetSearchDestinations.SEARCH_ROUTE) {
                 SearchScreen(
                     modifier = Modifier.fillMaxSize(),
                     locationRepository,
-                    onSearchButtonClick = { location, param ->
-//                        resultViewModel.getGourmetInfo(
-//                            lat = location.latitude,
-//                            lng = location.longitude,
-//                            range = param.rangeNum + 1
-//                        )
-                        navController.navigate(GourmetSearchScreen.Result.name)
+                    onSearchButtonClick = {
+                        navActions.navigateToResult()
                     },
                 )
             }
 
-            composable(route = GourmetSearchScreen.Result.name) {
+            composable(route = GourmetSearchDestinations.RESULT_ROUTE) {
                 ResultScreen(
                     onShowDetailButtonClick = {
-                        selectedRestaurant = it
-                        navController.navigate(GourmetSearchScreen.Detail.name)
+                        navActions.navigateToDetail(it.id)
                     } ,
                     modifier = Modifier.fillMaxSize()
                 )
             }
 
-            composable(route = GourmetSearchScreen.Detail.name) {
-                selectedRestaurant?.let {
+            composable(route = GourmetSearchDestinations.DETAIL_ROUTE) {
                     DetailScreen(
-                        it,
                         modifier = Modifier.fillMaxSize()
                     )
-                }
             }
         }
     }

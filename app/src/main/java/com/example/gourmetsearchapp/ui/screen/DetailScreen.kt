@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.gourmetsearchapp.R
@@ -28,9 +30,12 @@ import com.example.gourmetsearchapp.gourmetSearch.Restaurant
 
 @Composable
 fun DetailScreen(
-    restaurant: Restaurant,
-    modifier :Modifier = Modifier
+    modifier :Modifier = Modifier,
+    detailViewModel: DetailViewModel = hiltViewModel(),
 ) {
+
+    val restaurant = detailViewModel.restaurant
+
     Column(modifier = modifier.padding(16.dp)){
         Text(
             text = "${restaurant.name} ",
@@ -93,7 +98,7 @@ fun DetailScreenPreview(){
         ),
         distance = 500,
     )
-    DetailScreen(restaurant)
+    DetailScreen()
 }
 
 
