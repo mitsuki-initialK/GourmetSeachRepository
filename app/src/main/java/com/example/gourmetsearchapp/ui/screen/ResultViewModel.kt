@@ -2,6 +2,7 @@ package com.example.gourmetsearchapp.ui.screen
 
 import android.location.Location
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gourmetsearchapp.data.DatabaseRepository
@@ -29,7 +30,7 @@ data class ResultUiState(
 @HiltViewModel
 class ResultViewModel @Inject constructor(
     private val gourmetSearchRepository: GourmetSearchRepository,
-    private val databaseRepository: DatabaseRepository
+    private val databaseRepository: DatabaseRepository,
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(ResultUiState())

@@ -1,15 +1,12 @@
 package com.example.gourmetsearchapp.ui.screen
 
-import android.location.Location
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -17,8 +14,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -26,9 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,20 +29,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gourmetsearchapp.R
 import com.example.gourmetsearchapp.location.LocationRepository
-import kotlinx.coroutines.flow.StateFlow
 
 
 @Composable
 fun SearchScreen(
     modifier : Modifier = Modifier,
     locationRepository: LocationRepository,
-    onSearchButtonClick : (Location, SearchUiState) -> Unit,
+    onSearchButtonClick : () -> Unit,
     searchViewModel: SearchViewModel = viewModel(
         factory = viewModelFactory {
             initializer { SearchViewModel(locationRepository) }
@@ -137,9 +127,8 @@ fun SearchScreen(
 
         Button(
             onClick = {
-                val state = searchUiState.getLocationState
-                if(state is GetLocationState.Success) {
-                    onSearchButtonClick(state.location, searchUiState)
+                if( searchUiState.getLocationState is GetLocationState.Success) {
+                    onSearchButtonClick()
                 }
             },
         ) {
