@@ -25,9 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,9 +58,6 @@ fun GourmetSearchNavGraph(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = backStackEntry?.destination?.route ?: startDestination
 
-    val context = LocalContext.current
-    val locationRepository = NetworkLocationRepository(context as Activity)
-
     Scaffold(
         topBar = {
             GourmetSearchAppBar(
@@ -82,6 +77,9 @@ fun GourmetSearchNavGraph(
         ) {
 
             composable(route = GourmetSearchDestinations.SEARCH_ROUTE) {
+                val context = LocalContext.current
+                val locationRepository = NetworkLocationRepository(context as Activity)
+
                 SearchScreen(
                     modifier = Modifier.fillMaxSize(),
                     locationRepository,
